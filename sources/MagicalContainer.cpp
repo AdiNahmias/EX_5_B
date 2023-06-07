@@ -22,19 +22,24 @@ bool comparePointers(const int* a, const int* b) {
 }
 
 void MagicalContainer::addElement(int element) {
-    //check if the element alredy in the elments vector
+    //check if the element alredy in the elmemts vector
+
     for(int run : elements){
         if(run == element){
             return;
         }
     }
-    if(isPrime(element)){
-        prime_elements.push_back(new int (element));
+
+    auto iter = std::lower_bound(elements.begin(), elements.end(), element);
+    elements.insert(iter, element);
+
+    prime_elements.clear();
+    for(size_t i = 0; i < elements.size(); i++){
+        if(isPrime(elements[i])){
+            prime_elements.push_back(&elements[i]);
+        }
     }
-    elements.push_back(element);
-    
-    std::sort(elements.begin(), elements.end());
-    std::sort(prime_elements.begin(), prime_elements.end(), comparePointers);
+
 
 }
 
@@ -48,23 +53,17 @@ void MagicalContainer::removeElement(int element) {
     if(!in_elemnts){
         throw std::runtime_error("The Element not in the container!");
     }
-    for (auto i = elements.begin(); i != elements.end(); ++i) {
-        if (element == *i) {
-            elements.erase(i);
-            break;
+
+    auto iter = std::lower_bound(elements.begin(), elements.end(), element);
+    elements.erase(iter);
+
+    prime_elements.clear();
+    for(size_t i = 0; i < elements.size(); i++){
+        if(isPrime(elements[i])){
+            prime_elements.push_back(&elements[i]);
         }
     }
-    if(isPrime(element)){
-        for (auto i = prime_elements.begin(); i != prime_elements.end(); ++i) {
-            int *find_element = new int(element);
-            if (find_element == *i) {
-                prime_elements.erase(i);
-                delete find_element;
-                break;
-            }
-    }
 
-    }
 }
 
 std::vector<int>& MagicalContainer::getElements(){
@@ -79,7 +78,7 @@ void MagicalContainer::setElements(std::vector<int>& elements){
     this->elements = elements;
 } 
 
-int MagicalContainer::size() const {
+int MagicalContainer::size(){
     return elements.size();
 }
 

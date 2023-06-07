@@ -23,16 +23,12 @@ class MagicalContainer {
         void setElements(std::vector<int>& elements);
         void addElement(int element);
         void removeElement(int element);
-        int size() const;
+        int size();
 
         bool operator==(const MagicalContainer& other) const {
-            return elements == other.elements;
+            return elements == other.elements && prime_elements == other.prime_elements;
         }
-        ~MagicalContainer() {
-            for (int* prime : prime_elements) {
-                delete prime;
-            }
-        }
+        ~MagicalContainer() {}
 
         //----------------------------------------------------
         // Copy assignment operator
@@ -59,11 +55,11 @@ class MagicalContainer {
     class Iterator {
         private:
             MagicalContainer& container;
-            int index = 0;
-            bool start_index = true;
+            int index;
+            bool start_index;
             
         public:
-            Iterator(MagicalContainer& container) : container(container){}
+            Iterator(MagicalContainer& container) : container(container), index(0), start_index(true){}
             Iterator(const Iterator& other) : container(other.container), index(other.index) , start_index(other.start_index) {}
             virtual ~Iterator() = default;
             virtual Iterator& begin() = 0;
@@ -95,7 +91,7 @@ class MagicalContainer {
                 if(typeid(*this) != typeid(other)){
                     throw std::runtime_error("there is diffrent iterators");
                 }
-                return (this->container == other.container) && (this->index == other.index);
+                return (this->container == other.container) && (this->index == other.index) && (this->start_index == other.start_index);
             }
 
             bool operator!=(const Iterator& other) const {
@@ -107,7 +103,7 @@ class MagicalContainer {
             }
 
             bool operator<(const Iterator& other) const{
-                return index < other.index;
+                return !(*this == other) && !(*this > other);
             }
 
             //----------------------------------------------------
@@ -145,6 +141,7 @@ class MagicalContainer {
         public:
 
             AscendingIterator(MagicalContainer& container): Iterator(container){}
+
             int& operator*() override {
                 return this->getContainerIterator().getElements()[static_cast<std::vector<int>::size_type>(this->getIndex())];
             }
@@ -155,13 +152,6 @@ class MagicalContainer {
                 }
                 this->setIndex(this->getIndex() + 1);
                 return *this;
-            }
-
-            bool operator==(const AscendingIterator& other_iterator) const {
-                        return getIndex() == other_iterator.getIndex();
-            }
-            bool operator!=(const AscendingIterator& other_iterator) const {
-                        return getIndex() != other_iterator.getIndex();
             }
             
             AscendingIterator& begin() override{
@@ -182,6 +172,7 @@ class MagicalContainer {
     public:
 
         SideCrossIterator(MagicalContainer& container):Iterator(container){}
+        
         int& operator*() override {
             if (this->get_move_start()) {
                 return this->getContainerIterator().getElements()[static_cast<std::vector<int>::size_type>(this->getIndex())];
